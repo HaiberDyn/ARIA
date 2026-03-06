@@ -329,5 +329,4 @@ Open an issue to:
 
 ---
 
-*ARIA is an open specification. HaiberDyn originated it and implements it internally.  
-We intend to publish it as an open RFC and seek neutral stewardship as it matures.*
+*ARIA is an open specification. We seek neutral stewardship to ensure it serves the entire ecosystem.*
