@@ -267,7 +267,7 @@ When a new architecture ships, no framework changes. When hardware changes, neit
 
 ## Comparison
 
-| Feature | ARIA 0.5 | ONNX | WASI-NN | GGUF | TIS Backend | HF generate() |
+| Feature | ARIA 0.6 | ONNX | WASI-NN | GGUF | TIS Backend | HF generate() |
 |---------|:---:|:---:|:---:|:---:|:---:|:---:|
 | Stateful autoregressive decode | ✅ | ❌ | ❌ | Partial | ❌ | ✅ |
 | Heterogeneous state (KV + SSM) | ✅ | ❌ | ❌ | Partial | ❌ | Partial |
@@ -284,7 +284,7 @@ When a new architecture ships, no framework changes. When hardware changes, neit
 
 ## Status and Roadmap
 
-**ARIA 0.5-draft**
+**ARIA 0.6-draft**
 - Decoder-only autoregressive language models
 - Discrete token vocabulary
 - `AttentionKV`, `SSMState`, `Custom` semantic tags
