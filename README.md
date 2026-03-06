@@ -37,22 +37,19 @@ This violates four SOLID principles simultaneously:
 | Interface Segregation | Framework consumes model internals it never needs |
 | Dependency Inversion | Framework depends on model concretions, not abstractions |
 
-### What the Ecosystem Is Missing
+### Ecosystem Landscape
 
-All existing specifications fail at the same point:
+Existing standards excel at graph definition, file serialization, and kernel generation. ARIA focuses on the missing link: **Runtime State Management**.
 
-| Spec | The Gap |
-|------|---------|
-| ONNX | Static graph — cannot express mutable recurrent state |
-| WASI-NN | Inference contract is stateless — no per-request state lifecycle |
-| GGUF | File format + C++ compute contract; arch-specific code still required |
-| TIS backend API | Good serving contract; no stateful decode standardization |
-| HF `generate()` | Python-only; exposes model internals |
+| Standard | Focus / Strength | How ARIA Extends It |
+| :--- | :--- | :--- |
+| **ONNX** | Universal static graph exchange | Adds mutable state lifecycle for recurrent/hybrid models |
+| **WASI-NN** | Sandboxed ML inference | Adds stateful context management beyond single requests |
+| **GGUF** | Efficient file format & quantization | Defines the compute contract *between* the file and the runtime |
+| **TIS / Triton** | High-perf serving & kernel generation | Provides the architectural interface to host those kernels |
+| **HF generate()** | Python-based research flexibility | Standardizes the interface for compiled/production runtimes |
 
-The missing piece that none of them provide: **a standard where the model declares its state
-requirements and the runtime allocates them opaquely.** For pure-attention models this is a
-convenience. For hybrid attention+SSM models it is the only way to handle heterogeneous state
-types without bespoke framework code.
+The goal is not to replace these, but to provide the standard where the model declares its state requirements and the runtime allocates them opaquely. For pure-attention models this is a convenience. For hybrid attention+SSM models it is the essential bridge to handle heterogeneous state types without bespoke framework code.
 
 ---
 
