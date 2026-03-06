@@ -308,7 +308,7 @@ When a new architecture ships, no framework changes. When hardware changes, neit
 
 ## Specification
 
-→ **[`spec/ARIA-1.0-draft.md`](spec/ARIA-1.0-draft.md)** — full specification
+→ **[`spec/ARIA-0.6-draft.md`](spec/ARIA-0.6-draft.md)** — full specification
 
 Includes: type system, complete interface definition, semantic tag obligations, StateHandle
 lifecycle, KV dtype negotiation, error model with fatal/retriable taxonomy, invariants,
