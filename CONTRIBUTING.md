@@ -4,7 +4,7 @@ Welcome. ARIA is a community spec — its value comes from broad participation b
 authors, runtime maintainers, hardware vendors, and operators. This document explains
 how to contribute effectively and the intellectual property (IP) rules that govern it.
 
-**Status**: ARIA 0.5-draft
+**Status**: ARIA 0.7-draft
 
 ---
 

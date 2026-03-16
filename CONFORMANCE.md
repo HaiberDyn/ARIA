@@ -1,6 +1,6 @@
 # ARIA Conformance
 
-**Spec version**: 0.5-draft  
+**Spec version**: 0.7-draft
 **Status**: Checklist (conformance test suite implementation pending — tracked in project roadmap)
 
 ---
@@ -8,7 +8,7 @@
 ## Overview
 
 ARIA defines two conformance roles: **model** and **runtime**. Both must pass their
-respective requirements to claim ARIA 0.5-draft conformance. Additionally, ARIA distinguishes
+respective requirements to claim ARIA 0.7-draft conformance. Additionally, ARIA distinguishes
 between "conformant" and "portable" — an important distinction for adoption decisions.
 
 ---
@@ -17,7 +17,7 @@ between "conformant" and "portable" — an important distinction for adoption de
 
 ### ARIA-Conformant
 
-A model or runtime that implements the full ARIA 0.5-draft contract, including support for
+A model or runtime that implements the full ARIA 0.7-draft contract, including support for
 `Custom` semantic tags and dtypes. Conformant implementations interoperate wherever
 the two sides agree on Custom tag descriptions. Not guaranteed to be portable across
 arbitrary runtimes/models.
@@ -37,16 +37,17 @@ plans to propose for registration (see CONTRIBUTING.md §4).
 
 ## Model Conformance Requirements
 
-A conforming ARIA 0.5-draft model MUST:
+A conforming ARIA 0.7-draft model MUST:
 
 ### Interface Completeness
-- [ ] Implement all methods: `model_info()`, `declare_state()`, `prefill()` (single + batch), `decode()` (single + batch)
+- [ ] Implement all methods: `model_info()`, `declare_state()`, `prefill()` (single + batch), `decode()` (single + batch), `cancel()`
 - [ ] `model_info()` returns a valid `ModelInfo` with all required fields populated, including `default_tokenizer`
 - [ ] `declare_state()` returns a `StateSpec` with at least one `StateSlot`
 - [ ] `declare_state()` is deterministic: identical inputs produce identical `StateSpec`
-- [ ] `prefill()` accepts `LogitsMode.LastPosition` and returns a List of length 1
-- [ ] `prefill()` accepts `LogitsMode.AllPositions` and returns a List of length `len(tokens)`
-- [ ] `decode()` returns exactly one `Logits`
+- [ ] `prefill()` with a single-position `out_logits` buffer writes only the last token's logits
+- [ ] `prefill()` with a full-sequence `out_logits` buffer writes logits for all positions
+- [ ] `prefill()` with `out_logits=None` skips logit computation (no output written)
+- [ ] `decode()` writes exactly one logit vector to `out_logits` when provided
 
 ### State Handling
 - [ ] Never creates, copies, or destroys `StateHandle` objects
@@ -75,15 +76,22 @@ A conforming ARIA 0.5-draft model MUST:
 - [ ] Model reads the actual dtype from `TensorView.dtype` (not hardcoding the declared dtype)
 - [ ] Model handles all dtypes it declares in `supported_kv_dtypes`
 
+### Cancellation
+- [ ] `cancel()` is implemented and thread-safe
+- [ ] `cancel()` on an in-flight handle causes that call to return `Err(Cancelled)`
+- [ ] `cancel()` on an already-Released handle returns `Ok` (no-op)
+- [ ] After `cancel()` returns, the handle is in Released state
+
 ### Thread Safety
 - [ ] `model_info()` and `declare_state()` are thread-safe
 - [ ] Concurrent calls on different `StateHandle`s produce correct results
+- [ ] `cancel()` MAY be called concurrently with an in-flight call on the same handle
 
 ---
 
 ## Runtime Conformance Requirements
 
-A conforming ARIA 0.5-draft runtime MUST:
+A conforming ARIA 0.7-draft runtime MUST:
 
 ### Call Protocol
 - [ ] Call `model_info()` before `declare_state()`
@@ -146,6 +154,37 @@ Any use of Custom variants moves the model from ARIA-Portable to ARIA-Conformant
 
 ---
 
+## Model Protocol Adapter Conformance (§6.2)
+
+**Normative scope**: The Model Protocol Adapter layer is **required** for implementations
+that serve tool-calling-capable models. Implementations that serve only non-tool-calling
+models MAY omit the MPA. An implementation MUST NOT claim full ARIA 0.7-draft
+conformance while omitting the MPA if it serves models with tool-calling capability.
+
+Implementations that include (or are required to include) the Model Protocol Adapter MUST:
+
+### AdapterRegistry
+- [ ] `register()` accepts a prefix string and an `IModelAdapter` instance
+- [ ] `register()` returns an error on duplicate prefix registration
+- [ ] `resolve()` matches prefixes case-insensitively; longest match wins
+- [ ] `resolve()` returns `PassthroughAdapter` (not an error) for unregistered model names
+
+### Required Built-In Adapters
+- [ ] `QwenAdapter` is included and registered under the `"Qwen"` prefix
+- [ ] `ClaudeAdapter` is included and registered under the `"claude"` prefix
+- [ ] `OpenAIJsonAdapter` is included; default registration prefix `"gpt"`; parses
+      `{"type":"function","function":{"name":"...","arguments":"..."}}` format
+- [ ] `PassthroughAdapter` is included; `extract()` returns `None` for all inputs;
+      `model_family()` returns `"aria.passthrough"`
+
+### IModelAdapter Contract
+- [ ] `extract()` returns `Some(ToolInvocation)` for well-formed tool calls in the adapter's native format
+- [ ] `extract()` returns `None` for input that contains no tool call
+- [ ] `extract()` MUST NOT raise an error for malformed or unrecognized input — return `None`
+- [ ] `model_family()` returns a stable `"{vendor}.{family}"` identifier
+
+---
+
 ## Conformance Test Suite
 
 A machine-verifiable conformance test suite is planned for Phase 2 of ARIA development.
@@ -165,7 +204,7 @@ checklist and publish their conformance attestation in `PARTICIPANTS.md` when cr
 
 ## Claiming Conformance
 
-To publicly claim ARIA 0.5-draft conformance for your model or runtime:
+To publicly claim ARIA 0.7-draft conformance for your model or runtime:
 
 1. Complete the applicable checklist above (all items checked)
 2. Open a GitHub Issue tagged `[CONFORMANCE CLAIM]` with:

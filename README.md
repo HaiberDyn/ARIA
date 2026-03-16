@@ -2,7 +2,7 @@
 
 > *A minimal, vendor-neutral contract between language model implementations and serving runtimes.*
 
-**[Read the Spec →](spec/ARIA-0.6-draft.md)** | Status: Draft 0.6 | License: CC BY-SA 4.0
+**[Read the Spec →](spec/ARIA-0.7-draft.md)** | Status: Draft 0.7 | License: CC BY-SA 4.0
 
 ---
 
@@ -59,12 +59,12 @@ ARIA defines two interfaces:
 
 ```
 interface ILanguageModel {
-    ModelInfo    model_info()
-    StateSpec    declare_state(max_batch, max_tokens)
-    List[Logits] prefill(tokens, state, mode=LastPosition)
-    List[Logits] prefill(batch)                            // batch overload
-    Logits       decode(token, state)
-    List[Logits] decode(batch)                             // batch overload
+    model_info()                       → ModelInfo
+    declare_state(max_batch, max_tokens) → StateSpec
+    prefill(tokens, state)             → void    // writes to caller-provided logits buffer
+    prefill(batch)                     → void    // batch overload
+    decode(token, state)               → void    // writes to caller-provided logits buffer
+    decode(batch)                      → void    // batch overload
 }
 
 interface ITokenizer {
@@ -138,7 +138,7 @@ sequenceDiagram
 
     R->>R: handle = pool.acquire()
     R->>M: prefill([sys_tok…, user_tok…], handle)
-    M-->>R: List[Logits] ×1  (last position, default — use AllPositions for logprobs/spec-dec)
+    M-->>R: writes last-position logits to caller buffer  (full-sequence buffer → all positions, for spec-dec/logprobs)
 
     loop decode until stop condition
         R->>R: token = sample(logits[-1])
@@ -210,8 +210,8 @@ SSMState { layer_idx }
   → Runtime must: preserve exact values, no paging, no eviction
   → Model guarantee: fully overwrites on every call (constant-size recurrent state)
 
-Opaque { description }
-  → Runtime must: allocate as declared, preserve exactly
+Custom { extension_id }
+  → Runtime must: allocate as declared, preserve exactly, no paging
   → For model-defined state that fits neither above category
 ```
 
@@ -284,13 +284,15 @@ When a new architecture ships, no framework changes. When hardware changes, neit
 
 ## Status and Roadmap
 
-**ARIA 0.6-draft**
+**ARIA 0.7-draft**
 - Decoder-only autoregressive language models
 - Discrete token vocabulary
 - `AttentionKV`, `SSMState`, `Custom` semantic tags
 - KV dtype negotiation
 - Multi-call prefill (chunked prefill, multi-turn)
 - Full error taxonomy with fatal/retriable classification
+- **Model Protocol Adapter** — canonical tool-call normalization layer (`IModelAdapter`, `AdapterRegistry`)
+- **Cancellation** — `cancel(handle)` thread-safe cooperative cancellation; in-flight calls return `Err(Cancelled)`
 
 **ARIA 1.1 (planned)**
 - `BatchProfile` — explicit batch coordination interface for co-designed model-runtime pairs
@@ -308,12 +310,12 @@ When a new architecture ships, no framework changes. When hardware changes, neit
 
 ## Specification
 
-→ **[`spec/ARIA-0.6-draft.md`](spec/ARIA-0.6-draft.md)** — full specification
+→ **[`spec/ARIA-0.7-draft.md`](spec/ARIA-0.7-draft.md)** — full specification
 
-Includes: type system, complete interface definition, semantic tag obligations, StateHandle
-lifecycle, KV dtype negotiation, error model with fatal/retriable taxonomy, invariants,
-design rationale, framework compatibility notes (vLLM, SGLang, llama.cpp, TGI, LMDeploy),
-and a reference implementation skeleton.
+Includes: type system, complete interface definition, semantic tag obligations, Model Protocol
+Adapter layer, StateHandle lifecycle, KV dtype negotiation, error model with fatal/retriable
+taxonomy, invariants, design rationale, framework compatibility notes (vLLM, SGLang,
+llama.cpp, TGI, LMDeploy), and a reference implementation skeleton.
 
 ---
 

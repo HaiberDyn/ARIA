@@ -25,14 +25,6 @@ Model Protocol Adapter registrations (see §6.2) follow the format `aria.adapter
 | `aria.adapter.openai.function` | OpenAIJsonAdapter — JSON function-calling format (`{"type":"function","function":{"name":"...","arguments":"..."}}`) | 0.6.2 |
 | `aria.passthrough` | PassthroughAdapter — fallback; `extract()` always returns None | 0.6.1 |
 
-## Companion Intelligence Extensions
-
-Capability flags for companion and relational AI deployments (see §4.9 `ModelInfo.capabilities`).
-
-| Extension String | Description | Since |
-|------------------|-------------|-------|
-| `aria.companion.identity_stable` | Model maintains consistent persona and identity characteristics across multi-turn sessions within a request sequence | 0.6.2 |
-| `aria.companion.memory_integration` | Model can integrate external structured memory inputs (relationship history, user preferences) via the token context | 0.6.2 |
 
 ## Vendor Extensions
 
